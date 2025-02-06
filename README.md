@@ -20,24 +20,30 @@ A python script periodically checks and creates new LDAP accounts and deactivate
 2. Extend your `docker-compose.override.yml` with an additional container:
 
     ```yaml
+   ...
     ldap-mailcow:
-        image: sgologuzov/openldap-mailcow
         depends_on:
             - nginx-mailcow
-        volumes:
-            - ./data/ldap:/db:rw
-            - ./data/conf/dovecot:/conf/dovecot:rw
-            - ./data/conf/sogo:/conf/sogo:rw
         environment:
             - LDAP-MAILCOW_LDAP_URI=ldap(s)://ldap.domain.local
             - LDAP-MAILCOW_LDAP_BASE_DN=dc=domain,dc=local
             - LDAP-MAILCOW_LDAP_BIND_DN=cn=bind,dc=domain,dc=local
             - LDAP-MAILCOW_LDAP_BIND_DN_PASSWORD=XXXXXXXXXX
-            - LDAP-MAILCOW_API_HOST=https://mailcow.domain.local
+            - LDAP-MAILCOW_API_HOST=http://nginx
             - LDAP-MAILCOW_API_KEY=XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX
             - LDAP-MAILCOW_SYNC_INTERVAL=300
             - LDAP-MAILCOW_LDAP_FILTER=(&(objectclass=posixAccount)(mail=*domain.local))
             - LDAP-MAILCOW_SOGO_LDAP_FILTER=objectclass='posixAccount' AND mail='*domain.local'
+        image: sgologuzov/openldap-mailcow
+        volumes:
+            - ./data/ldap:/db:rw
+            - ./data/conf/dovecot:/conf/dovecot:rw
+            - ./data/conf/sogo:/conf/sogo:rw
+        networks:
+            mailcow-network:
+                aliaces:
+                  - ldap
+   ...
     ```
 
 3. Configure environmental variables:
